@@ -3,6 +3,7 @@ package org.d3if3087.mobpro1.ui.screen
 import android.annotation.SuppressLint
 import org.d3if3087.latihanmobpro1.R
 import android.content.res.Configuration
+import android.graphics.drawable.Icon
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -29,6 +30,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.ui.Alignment
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -52,6 +59,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.TextUnit
 //import org.d3if3087.latihanmobpro1.model.Hewan
 import org.d3if3087.latihanmobpro1.ui.theme.LatihanMobpro1Theme
 import kotlin.math.pow
@@ -135,7 +143,13 @@ fun ScreenPreview() {
 @Composable
 fun ScreenContent(modifier: Modifier) {
     var berat by remember { mutableStateOf("") }
+    var beratError by remember {
+        mutableStateOf(false)
+    }
     var tinggi by remember { mutableStateOf("") }
+    var tinggiError by remember {
+        mutableStateOf(false)
+    }
     val radioOptions = listOf(
         stringResource(id = R.string.pria),
         stringResource(id = R.string.wanita),
@@ -162,7 +176,9 @@ fun ScreenContent(modifier: Modifier) {
             value = berat,
             onValueChange = { berat = it },
             label = { Text(text = stringResource(R.string.berat_badan)) },
-            trailingIcon = { Text(text = "kg") },
+            isError = beratError,
+            trailingIcon = { IconPicker(beratError, "kg") },
+            supportingText = { ErrorHint(beratError)},
             singleLine = true,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Number,
@@ -174,7 +190,8 @@ fun ScreenContent(modifier: Modifier) {
             value = tinggi,
             onValueChange = { tinggi = it },
             label = { Text(text = stringResource(R.string.tinggi_badan))},
-            trailingIcon = { Text(text = "cm")},
+            trailingIcon = { IconPicker(tinggiError, "cm") },
+            supportingText = { ErrorHint(tinggiError)},
             singleLine = true,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Number,
@@ -203,6 +220,9 @@ fun ScreenContent(modifier: Modifier) {
             }
             Button(
                 onClick = {
+                    beratError = (berat == "" || berat == "0")
+                    tinggiError = (tinggi == "" || tinggi == "0")
+                    if (beratError || tinggiError) return@Button
                     bmi = hitungBmi(berat.toFloat(), tinggi.toFloat())
                     kategori = getKategori(bmi, gender == radioOptions[0])
                 },
@@ -248,6 +268,22 @@ fun GenderOption(label: String, isSelected: Boolean, modifier: Modifier) {
           )
         }
     }
+
+@Composable
+fun IconPicker(isError: Boolean, unit: String) {
+    if (isError) {
+        Icon(imageVector = Icons.Filled.Warning, contentDescription = null)
+    } else {
+        Text(text = unit)
+    }
+}
+
+@Composable 
+fun ErrorHint(isError: Boolean) {
+    if (isError) {
+        Text(text = stringResource(R.string.input_invalid))
+    }
+}
 
 private fun hitungBmi (berat: Float, tinggi: Float): Float {
     return berat / (tinggi / 100).pow(2)
