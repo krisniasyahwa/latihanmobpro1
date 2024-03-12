@@ -1,5 +1,6 @@
 package org.d3if3087.mobpro1.ui.screen
 
+import android.annotation.SuppressLint
 import org.d3if3087.latihanmobpro1.R
 import android.content.res.Configuration
 import android.os.Bundle
@@ -25,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Divider
 import androidx.compose.ui.Alignment
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -52,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 //import org.d3if3087.latihanmobpro1.model.Hewan
 import org.d3if3087.latihanmobpro1.ui.theme.LatihanMobpro1Theme
+import kotlin.math.pow
 
 class MainActivity : ComponentActivity() {
     //    private val data = getData()
@@ -127,6 +130,7 @@ fun ScreenPreview() {
 
 //modul 4
 
+@SuppressLint("RememberReturnType")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScreenContent(modifier: Modifier) {
@@ -139,10 +143,13 @@ fun ScreenContent(modifier: Modifier) {
     var gender by remember {
         mutableStateOf(radioOptions[0])
     }
+    var bmi by remember { mutableStateOf(0f) }
+    var kategori by remember { mutableStateOf(0) }
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState() )
+            .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -195,15 +202,33 @@ fun ScreenContent(modifier: Modifier) {
                 )
             }
             Button(
-                onClick = { },
+                onClick = {
+                    bmi = hitungBmi(berat.toFloat(), tinggi.toFloat())
+                    kategori = getKategori(bmi, gender == radioOptions[0])
+                },
                 modifier = Modifier.padding(top = 8.dp),
                 contentPadding = PaddingValues(horizontal = 32.dp, vertical = 16.dp)
-                ) {
+            ) {
                 Text(text = stringResource(R.string.hitung))
+            }
+            if (bmi != 0f) {
+                Divider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    thickness = 1.dp
+                )
+                Text(
+                    text = stringResource(R.string.bmi_x, bmi),
+                    style = MaterialTheme.typography.titleLarge
+                    )
+                Text(
+                    text = stringResource(kategori).uppercase(),
+                    style = MaterialTheme.typography.headlineLarge
+                )
             }
         }
     }
 }
+
 
 
 @Composable
@@ -224,5 +249,24 @@ fun GenderOption(label: String, isSelected: Boolean, modifier: Modifier) {
         }
     }
 
+private fun hitungBmi (berat: Float, tinggi: Float): Float {
+    return berat / (tinggi / 100).pow(2)
+}
+
+private fun getKategori(bmi: Float, isMale: Boolean): Int {
+    return if (isMale) {
+        when {
+            bmi < 20.5 -> R.string.kurus
+            bmi >= 27.0 -> R.string.gemuk
+            else -> R.string.ideal
+        }
+    } else {
+        when {
+            bmi < 18.5 -> R.string.kurus
+            bmi >= 25.0 -> R.string.gemuk
+            else -> R.string.ideal
+        }
+    }
+}
 
 
